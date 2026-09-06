@@ -1,0 +1,68 @@
+@layer base {
+  :root {
+    --surface-0: #FFFFFF;
+    --surface-1: #F7F8FA;
+    --surface-2: #EDEFF2;
+    --ink-900: #0F1720;
+    --ink-700: #334155;
+    --ink-500: #5B6572;
+    --ink-300: #94A3B8;
+    --brand-50: #F0F5FF;
+    --brand-100: #DBEAFE;
+    --brand-700: #1E4FA3;
+    --brand-800: #173E80;
+    --brand-900: #123061;
+    --ochre-50: #FEF7EE;
+    --ochre-600: #B4711C;
+    --success: #15803D;
+    --success-light: #F0FDF4;
+    --critical: #B42318;
+    --critical-light: #FEF2F2;
+    --border: #E2E5EA;
+    --border-subtle: #ECEEF2;
+  }
+}
+
+/* Custom scrollbars for clean technical aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Base typography font-family enforcement */
+body {
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0F1720;
+  background-color: #F7F8FA;
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+.font-sans {
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Hairline border utility */
+.border-hairline {
+  border: 1px solid #E2E5EA;
+}
+
+/* KPI Strip brand wash (4% opacity brand wash rule) */
+.bg-kpi-wash {
+  background-color: rgba(30, 79, 163, 0.04);
+}

@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-surface: #E8EDF5;
+    --bg-surface-subtle: #DFE5ED;
+    --shadow-light: rgba(255, 255, 255, 0.9);
+    --shadow-dark: rgba(163, 177, 198, 0.45);
+    --shadow-dark-intense: rgba(163, 177, 198, 0.6);
+    --dark-primary: #1E293B;
+    --dark-secondary: #475569;
+    --muted-text: #64748B;
+    --accent-success: #10B981;
+    --border-divider: #D9E2EC;
+  }
+
+  body {
+    margin: 0;
+    background-color: #E8EDF5;
+    color: #1E293B;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+/* Custom Soft Neumorphic Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #E8EDF5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+  box-shadow: inset 1px 1px 2px rgba(163, 177, 198, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ==========================================================================
+   NEUMORPHIC / SOFT UI DESIGN SYSTEM TOKENS
+   ========================================================================== */
+
+/* Standard Elevated Card */
+.neu-card, .neumorphic-card {
+  background: #E8EDF5;
+  border-radius: 20px;
+  box-shadow: 
+    -6px -6px 14px rgba(255, 255, 255, 0.9),
+     6px  6px 16px rgba(163, 177, 198, 0.45);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neu-card-sm {
+  background: #E8EDF5;
+  border-radius: 16px;
+  box-shadow: 
+    -4px -4px 10px rgba(255, 255, 255, 0.9),
+     4px  4px 10px rgba(163, 177, 198, 0.4);
+}
+
+.neu-card-lg {
+  background: #E8EDF5;
+  border-radius: 24px;
+  box-shadow: 
+    -8px -8px 20px rgba(255, 255, 255, 0.95),
+     8px  8px 20px rgba(163, 177, 198, 0.5);
+}
+
+/* Inset / Sunken Element (Inputs, pressed buttons, active tabs, recessed meters) */
+.neu-inset, .neumorphic-inset {
+  background: #E8EDF5;
+  border-radius: 12px;
+  box-shadow: 
+    inset  3px  3px 6px rgba(163, 177, 198, 0.4),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.85);
+  transition: all 0.2s ease;
+}
+
+.neu-inset-deep {
+  background: #E4EAF2;
+  box-shadow: 
+    inset  4px  4px 8px rgba(163, 177, 198, 0.5),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+}
+
+/* Elevated Buttons & Clickable Badges */
+.neu-btn, .neumorphic-btn {
+  background: #E8EDF5;
+  border-radius: 14px;
+  box-shadow: 
+    -4px -4px 10px rgba(255, 255, 255, 0.9),
+     4px  4px 10px rgba(163, 177, 198, 0.4);
+  color: #1E293B;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.neu-btn:hover {
+  box-shadow: 
+    -6px -6px 14px rgba(255, 255, 255, 0.95),
+     6px  6px 14px rgba(163, 177, 198, 0.5);
+  transform: translateY(-1px);
+}
+
+.neu-btn:active, .neu-btn.active {
+  box-shadow: 
+    inset  2px  2px 5px rgba(163, 177, 198, 0.5),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+  transform: translateY(0px);
+}
+
+/* Primary Dark Neumorphic Button (e.g. "+ New Analysis") */
+.neu-btn-dark {
+  background: #1E293B;
+  color: #FFFFFF;
+  border-radius: 14px;
+  box-shadow: 
+    -4px -4px 10px rgba(255, 255, 255, 0.8),
+     4px  4px 14px rgba(30, 41, 59, 0.35);
+  transition: all 0.2s ease;
+}
+
+.neu-btn-dark:hover {
+  background: #27364B;
+  box-shadow: 
+    -5px -5px 12px rgba(255, 255, 255, 0.9),
+     5px  5px 16px rgba(30, 41, 59, 0.45);
+  transform: translateY(-1px);
+}
+
+.neu-btn-dark:active {
+  background: #141C27;
+  box-shadow: 
+    inset  2px  2px 5px rgba(0, 0, 0, 0.5),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.2);
+  transform: translateY(0px);
+}
+
+/* Floating Elevated Center Square / Badge */
+.neu-floating {
+  background: #E8EDF5;
+  box-shadow: 
+    -4px -4px 12px rgba(255, 255, 255, 0.95),
+     4px  4px 12px rgba(163, 177, 198, 0.45);
+}
+
+/* Soft Neumorphic Icon Badge */
+.neu-icon-badge {
+  background: #E8EDF5;
+  border-radius: 12px;
+  box-shadow: 
+    -3px -3px 8px rgba(255, 255, 255, 0.9),
+     3px  3px 8px rgba(163, 177, 198, 0.35);
+}
+
+.neu-icon-badge-inset {
+  background: #E8EDF5;
+  border-radius: 12px;
+  box-shadow: 
+    inset  2px  2px 5px rgba(163, 177, 198, 0.35),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.85);
+}
+
+/* Soft Progress / Bar Track */
+.neu-track {
+  background: #DEE4EC;
+  border-radius: 9999px;
+  box-shadow: 
+    inset  2px  2px 4px rgba(163, 177, 198, 0.4),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.85);
+}
+
+/* Active Navigation Pill (Embossed / Inset effect) */
+.neu-nav-active {
+  background: #E8EDF5;
+  color: #1E293B;
+  box-shadow: 
+    inset  3px  3px 6px rgba(163, 177, 198, 0.4),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.85);
+}
+
+/* Keyframes for subtle pulse / glow */
+@keyframes softPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.03);
+  }
+}
+
+.animate-soft-pulse {
+  animation: softPulse 3s ease-in-out infinite;
+}
