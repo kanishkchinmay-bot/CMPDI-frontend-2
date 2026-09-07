@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Search, Bell, Settings, Menu, CheckCircle, AlertTriangle, Info, Sparkles } from "lucide-react";
+import { Search, Bell, Menu, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 
-const Navbar = ({ onOpenMenu, onSearchQuery, onOpenSettings }) => {
+const Navbar = ({ onOpenMenu, onSearchQuery }) => {
   const { pendingCount, validatedCount } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -23,22 +23,25 @@ const Navbar = ({ onOpenMenu, onSearchQuery, onOpenSettings }) => {
 
   const notifications = [
     pendingCount > 0 && {
-      id: 1, type: "warning",
+      id: 1,
+      type: "warning",
       title: `${pendingCount} records pending review`,
       desc: "Human verification required before these records can be used.",
-      time: "Now"
+      time: "Now",
     },
     validatedCount > 0 && {
-      id: 2, type: "success",
+      id: 2,
+      type: "success",
       title: `${validatedCount} records validated`,
       desc: "These records are available for AI assistant and report generation.",
-      time: "Today"
+      time: "Today",
     },
     {
-      id: 3, type: "info",
+      id: 3,
+      type: "info",
       title: "AI Engine is online",
-      desc: "GeoExtract v2.1 is ready to process uploaded documents.",
-      time: "System"
+      desc: "GeoExtract v1.0 is ready to process uploaded documents.",
+      time: "System",
     },
   ].filter(Boolean);
 
@@ -47,8 +50,10 @@ const Navbar = ({ onOpenMenu, onSearchQuery, onOpenSettings }) => {
       <div className="flex items-center justify-between gap-4">
         {/* LEFT */}
         <div className="flex items-center gap-3">
-          <button onClick={onOpenMenu}
-            className="lg:hidden p-2 rounded-xl bg-[#E8EDF5] text-[#475569] shadow-[-3px_-3px_7px_rgba(255,255,255,0.9),3px_3px_7px_rgba(163,177,198,0.4)] cursor-pointer">
+          <button
+            onClick={onOpenMenu}
+            className="lg:hidden p-2 rounded-xl bg-[#E8EDF5] text-[#475569] shadow-[-3px_-3px_7px_rgba(255,255,255,0.9),3px_3px_7px_rgba(163,177,198,0.4)] cursor-pointer"
+          >
             <Menu size={20} />
           </button>
           <div>
@@ -68,21 +73,30 @@ const Navbar = ({ onOpenMenu, onSearchQuery, onOpenSettings }) => {
         {/* RIGHT */}
         <div className="flex items-center gap-3 shrink-0">
           {/* Search */}
-          <form onSubmit={handleSearchSubmit} className="neu-inset hidden sm:flex items-center gap-2.5 px-3.5 py-2 w-52 md:w-72">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="neu-inset hidden sm:flex items-center gap-2.5 px-3.5 py-2 w-52 md:w-72"
+          >
             <Search size={16} className="text-[#64748B] shrink-0" />
-            <input type="text" value={searchValue} onChange={(e) => setSearchValue(e.target.value)}
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
               placeholder="Search records, documents..."
-              className="w-full bg-transparent outline-none border-none text-xs text-[#1E293B] placeholder-[#64748B] font-medium" />
+              className="w-full bg-transparent outline-none border-none text-xs text-[#1E293B] placeholder-[#64748B] font-medium"
+            />
           </form>
 
           {/* Notifications */}
           <div className="relative" ref={notifRef}>
-            <button onClick={() => setShowNotifications(!showNotifications)}
-              className={`relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer
-                ${showNotifications
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className={`relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                showNotifications
                   ? "bg-[#E8EDF5] text-[#1E293B] shadow-[inset_2px_2px_5px_rgba(163,177,198,0.5),inset_-2px_-2px_5px_rgba(255,255,255,0.9)]"
                   : "bg-[#E8EDF5] text-[#475569] shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_3px_8px_rgba(163,177,198,0.4)]"
-                }`}>
+              }`}
+            >
               <Bell size={17} />
               {pendingCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-[#E8EDF5]" />
@@ -94,17 +108,28 @@ const Navbar = ({ onOpenMenu, onSearchQuery, onOpenSettings }) => {
                 <p className="text-xs font-bold text-[#1E293B] mb-3">System Notifications</p>
                 <div className="space-y-2">
                   {notifications.map((n) => (
-                    <div key={n.id} className="p-3 rounded-xl bg-[#E8EDF5] shadow-[-2px_-2px_6px_rgba(255,255,255,0.9),2px_2px_6px_rgba(163,177,198,0.3)]">
+                    <div
+                      key={n.id}
+                      className="p-3 rounded-xl bg-[#E8EDF5] shadow-[-2px_-2px_6px_rgba(255,255,255,0.9),2px_2px_6px_rgba(163,177,198,0.3)]"
+                    >
                       <div className="flex items-start gap-2">
-                        {n.type === "success" && <CheckCircle size={14} className="text-[#10B981] mt-0.5 shrink-0" />}
-                        {n.type === "warning" && <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />}
-                        {n.type === "info" && <Info size={14} className="text-[#475569] mt-0.5 shrink-0" />}
+                        {n.type === "success" && (
+                          <CheckCircle size={14} className="text-[#10B981] mt-0.5 shrink-0" />
+                        )}
+                        {n.type === "warning" && (
+                          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+                        )}
+                        {n.type === "info" && (
+                          <Info size={14} className="text-[#475569] mt-0.5 shrink-0" />
+                        )}
                         <div className="flex-1">
                           <div className="flex justify-between">
                             <p className="text-xs font-bold text-[#1E293B]">{n.title}</p>
                             <span className="text-[10px] text-[#64748B]">{n.time}</span>
                           </div>
-                          <p className="text-[11px] text-[#64748B] mt-0.5 leading-relaxed">{n.desc}</p>
+                          <p className="text-[11px] text-[#64748B] mt-0.5 leading-relaxed">
+                            {n.desc}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -114,22 +139,16 @@ const Navbar = ({ onOpenMenu, onSearchQuery, onOpenSettings }) => {
             )}
           </div>
 
-          {/* Settings */}
-          <button onClick={onOpenSettings}
-            className="w-10 h-10 rounded-2xl bg-[#E8EDF5] text-[#475569] shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_3px_8px_rgba(163,177,198,0.4)] flex items-center justify-center transition-all cursor-pointer">
-            <Settings size={17} />
-          </button>
-
           {/* Avatar */}
           <div className="flex items-center gap-2.5 pl-1">
             <div className="w-10 h-10 rounded-full bg-[#E8EDF5] shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_3px_8px_rgba(163,177,198,0.45)] border border-[#D5DEE8] flex items-center justify-center font-bold text-xs text-[#1E293B]">
               <div className="w-full h-full bg-gradient-to-br from-[#D5DEE8] to-[#CBD5E1] flex items-center justify-center text-[#1E293B] font-bold text-xs tracking-tight rounded-full">
-                DR
+                RS
               </div>
             </div>
             <div className="hidden xl:block">
-              <p className="text-xs font-bold text-[#1E293B] leading-tight">Dr. R. Sharma</p>
-              <p className="text-[10px] font-semibold text-[#64748B]">Chief Geologist</p>
+              <p className="text-xs font-bold text-[#1E293B] leading-tight">R. Sharma</p>
+              <p className="text-[10px] font-semibold text-[#64748B]">Senior Data Analyst</p>
             </div>
           </div>
         </div>

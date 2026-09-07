@@ -1,268 +1,562 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, X, Edit3, ChevronLeft, ChevronRight, AlertTriangle, FileText, Sparkles, CheckCircle2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Edit3,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+  FileText,
+  RotateCw,
+  Maximize2,
+  Sparkles,
+  Check,
+} from "lucide-react";
 import { useApp } from "../../context/AppContext";
-
-const ConfidenceBar = ({ value }) => {
-  const color = value >= 90 ? "#10B981" : value >= 75 ? "#F59E0B" : "#EF4444";
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 rounded-full bg-[#D5DEE8] shadow-[inset_1px_1px_2px_rgba(163,177,198,0.4)] overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${value}%`, backgroundColor: color }} />
-      </div>
-      <span className="text-xs font-bold" style={{ color }}>{value}%</span>
-    </div>
-  );
-};
 
 const Validation = () => {
   const navigate = useNavigate();
-  const { records, approveRecord, rejectRecord, editRecord } = useApp();
+  const {
+    records,
+    pendingQueue,
+    selectedRecordId,
+    setSelectedRecordId,
+    approveRecord,
+    rejectRecord,
+    editRecord,
+  } = useApp();
 
-  const queue = records.filter((r) => r.status === "pending");
-  const [idx, setIdx] = useState(0);
-  const [editing, setEditing] = useState(false);
-  const [editFields, setEditFields] = useState({});
-  const [done, setDone] = useState(false);
+  const activeList = pendingQueue.length > 0 ? pendingQueue : records;
+  const initialIndex = activeList.findIndex((r) => r.id === selectedRecordId);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
 
-  const current = queue[idx];
+  useEffect(() => {
+    const idx = activeList.findIndex((r) => r.id === selectedRecordId);
+    if (idx >= 0) setCurrentIndex(idx);
+  }, [selectedRecordId, activeList]);
+
+  const current = activeList[currentIndex] || activeList[0];
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    project: "",
+    year: "",
+    production: "",
+    reserve: "",
+  });
+
+  const [reviewerComment, setReviewerComment] = useState("");
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  useEffect(() => {
+    if (current) {
+      setEditForm({
+        project: current.project || "",
+        year: current.year || "",
+        production: current.production || "",
+        reserve: current.reserve || "",
+      });
+      setReviewerComment(current.reviewerComment || "");
+      setIsEditing(false);
+    }
+  }, [current?.id]);
+
+  const handleNext = () => {
+    if (currentIndex < activeList.length - 1) {
+      const nextRec = activeList[currentIndex + 1];
+      setSelectedRecordId(nextRec.id);
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      const prevRec = activeList[currentIndex - 1];
+      setSelectedRecordId(prevRec.id);
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
 
   const handleApprove = () => {
-    approveRecord(current.id);
-    if (idx < queue.length - 1) setIdx(idx);
-    else { setDone(true); }
-    setEditing(false);
+    if (!current) return;
+    if (isEditing) {
+      editRecord(current.id, editForm, reviewerComment);
+    } else {
+      approveRecord(current.id, reviewerComment);
+    }
+    setToastMessage(`Approved record for ${current.project}! Data is now in Validated Data.`);
+    setTimeout(() => setToastMessage(null), 3500);
+
+    if (currentIndex < activeList.length - 1) {
+      handleNext();
+    }
   };
 
   const handleReject = () => {
-    rejectRecord(current.id);
-    if (idx >= queue.length - 1 && idx > 0) setIdx(idx - 1);
-    setEditing(false);
+    if (!current) return;
+    rejectRecord(current.id, reviewerComment);
+    setToastMessage(`Record for ${current.project} quarantined.`);
+    setTimeout(() => setToastMessage(null), 3500);
+    if (currentIndex > 0) {
+      handlePrev();
+    }
   };
 
-  const handleSaveEdit = () => {
-    editRecord(current.id, editFields);
-    setEditing(false);
-    setEditFields({});
-    if (idx < queue.length - 1) setIdx(idx);
-    else setDone(true);
-  };
-
-  const startEdit = () => {
-    setEditFields({
-      project: current.project,
-      year: current.year,
-      production: current.production,
-      reserve: current.reserve,
-    });
-    setEditing(true);
-  };
-
-  // All done state
-  const allDone = queue.length === 0 || done;
+  if (!current) {
+    return (
+      <div className="neu-card p-12 text-center space-y-4">
+        <CheckCircle2 size={48} className="text-[#10B981] mx-auto" />
+        <h2 className="text-xl font-bold text-[#1E293B]">All Records Reviewed!</h2>
+        <p className="text-xs text-[#64748B] max-w-sm mx-auto">
+          No more records pending human review. Validated records are available for AI queries and report generation.
+        </p>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <button
+            onClick={() => navigate("/validated")}
+            className="neu-btn px-4 py-2.5 rounded-2xl text-xs font-bold text-[#1E293B] cursor-pointer"
+          >
+            View Validated Data
+          </button>
+          <button
+            onClick={() => navigate("/reports")}
+            className="neu-btn-dark px-4 py-2.5 rounded-2xl text-xs font-bold text-white cursor-pointer"
+          >
+            Generate Parliamentary Report
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-extrabold text-[#1E293B] tracking-tight">Human Review</h1>
-          <p className="text-sm text-[#64748B] mt-1">Verify AI-extracted records before approving them.</p>
-        </div>
-        {queue.length > 0 && (
-          <div className="self-start neu-inset px-4 py-2 rounded-xl text-xs font-bold text-[#1E293B]">
-            {idx + 1} / {queue.length} records
+      {/* ── TOAST NOTIFICATION ── */}
+      {toastMessage && (
+        <div className="neu-card-sm p-4 text-xs font-semibold flex items-center justify-between text-[#10B981] border-l-4 border-[#10B981]">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={16} className="shrink-0" />
+            <span>{toastMessage}</span>
           </div>
-        )}
+          <button
+            onClick={() => navigate("/validated")}
+            className="underline font-bold text-[#1E293B] shrink-0 cursor-pointer"
+          >
+            Go to Validated Data →
+          </button>
+        </div>
+      )}
+
+      {/* ── TOP DOCKET BREADCRUMB & BATCH BAR ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-1">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-mono text-[#64748B]">
+            <span>DOCUMENT DOCKET</span>
+            <span>/</span>
+            <span className="font-bold text-[#1E293B]">{current.docName}</span>
+            <span className="px-1.5 py-0.5 rounded bg-[#D5DEE8]/60 text-[10px]">
+              P.{String(current.sourcePage).padStart(2, "0")}/28
+            </span>
+          </div>
+          <div className="flex items-center gap-3 mt-1">
+            <h1 className="text-[26px] sm:text-[28px] font-extrabold text-[#1E293B] tracking-tight">
+              Geological Extract Verification
+            </h1>
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                current.status === "validated"
+                  ? "bg-emerald-500/10 text-[#10B981]"
+                  : current.status === "rejected"
+                  ? "bg-rose-500/10 text-rose-600"
+                  : "bg-amber-500/10 text-amber-700"
+              }`}
+            >
+              STATUS: {current.status === "validated" ? "VALIDATED" : current.status === "rejected" ? "QUARANTINED" : "PENDING REVIEW"}
+            </span>
+          </div>
+        </div>
+
+        {/* Batch Execution Controls */}
+        <div className="neu-card-sm p-2.5 flex items-center gap-3 self-start sm:self-auto">
+          <div className="text-right pr-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+              Batch Execution
+            </span>
+            <span className="text-xs font-bold text-[#1E293B]">
+              Record {currentIndex + 1} of {activeList.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 border-l border-[#D5DEE8]/60 pl-2">
+            <button
+              onClick={handlePrev}
+              disabled={currentIndex === 0}
+              className="neu-btn p-1.5 rounded-xl text-[#1E293B] disabled:opacity-30 cursor-pointer"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={currentIndex === activeList.length - 1}
+              className="neu-btn p-1.5 rounded-xl text-[#1E293B] disabled:opacity-30 cursor-pointer"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Empty state */}
-      {allDone ? (
-        <div className="neu-card p-12 flex flex-col items-center justify-center text-center gap-4">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 flex items-center justify-center">
-            <CheckCircle2 size={36} className="text-[#10B981]" />
-          </div>
-          <h2 className="text-xl font-bold text-[#1E293B]">All Records Reviewed!</h2>
-          <p className="text-sm text-[#64748B] max-w-sm">
-            No more records pending review. Validated records are ready for AI queries and report generation.
-          </p>
-          <div className="flex items-center gap-3 mt-2">
-            <button onClick={() => navigate("/validated")}
-              className="neu-btn px-5 py-2.5 rounded-xl text-xs font-bold text-[#1E293B] cursor-pointer">
-              View Validated Data
-            </button>
-            <button onClick={() => navigate("/assistant")}
-              className="neu-btn-dark px-5 py-2.5 rounded-xl text-xs font-bold text-white cursor-pointer">
-              Ask AI Assistant
-            </button>
+      {/* ── TWO-COLUMN DETAILED WORKFLOW ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* ── LEFT COLUMN (6 cols): Original Document Page with highlighted source text ── */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="neu-card overflow-hidden flex flex-col">
+            {/* Viewer Toolbar */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#D5DEE8]/60 text-xs">
+              <div className="flex items-center gap-2 text-[11px] text-[#475569]">
+                <FileText size={15} className="text-[#1E293B]" />
+                <span className="font-bold truncate max-w-[200px]">
+                  {current.docName.replace(".pdf", "_SCAN_004.tif")}
+                </span>
+                <span className="text-[#64748B] text-[10px]">300 DPI · OCR-L2</span>
+              </div>
+
+              <div className="flex items-center gap-1 text-[11px]">
+                <button
+                  onClick={() => setZoomLevel(100)}
+                  className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold cursor-pointer ${
+                    zoomLevel === 100 ? "neu-inset text-[#1E293B]" : "neu-btn text-[#64748B]"
+                  }`}
+                >
+                  100%
+                </button>
+                <button
+                  onClick={() => setZoomLevel(125)}
+                  className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold cursor-pointer ${
+                    zoomLevel === 125 ? "neu-inset text-[#1E293B]" : "neu-btn text-[#64748B]"
+                  }`}
+                >
+                  125%
+                </button>
+                <button
+                  onClick={() => setZoomLevel(90)}
+                  className="neu-btn px-2 py-0.5 rounded-lg text-[10.5px] font-bold text-[#64748B] cursor-pointer"
+                >
+                  FIT
+                </button>
+                <button className="neu-btn p-1 rounded-lg text-[#64748B]">
+                  <RotateCw size={13} />
+                </button>
+                <button className="neu-btn p-1 rounded-lg text-[#64748B]">
+                  <Maximize2 size={13} />
+                </button>
+              </div>
+            </div>
+
+            {/* Stylized High-Fidelity Geological Report Preview */}
+            <div className="p-6 overflow-auto max-h-[520px] select-none text-[#1E293B]">
+              <div
+                style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: "top left" }}
+                className="transition-transform duration-200"
+              >
+                {/* Document Letterhead */}
+                <div className="border-b border-[#D5DEE8] pb-3 mb-4 text-center">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#64748B]">
+                    Government of India · Ministry of Coal
+                  </div>
+                  <h2 className="text-base font-black uppercase tracking-wide text-[#1E293B] mt-0.5">
+                    BHARAT COKING COAL LIMITED
+                  </h2>
+                  <p className="text-[10px] text-[#475569] font-semibold">
+                    (A SUBSIDIARY OF COAL INDIA LIMITED - A GOVT. OF INDIA UNDERTAKING)
+                  </p>
+                  <p className="text-[9.5px] text-[#64748B] mt-1 font-mono">
+                    JHARIA COALFIELD DIVISION · OPERATIONAL REVIEW {current.year}
+                  </p>
+                </div>
+
+                {/* Table Title */}
+                <div className="mb-2 flex items-center justify-between text-xs">
+                  <h3 className="font-bold text-[#1E293B]">
+                    {current.sourceTable}
+                  </h3>
+                  <span className="text-[9.5px] font-mono text-[#64748B]">
+                    Units: Million Metric Tonnes (MT)
+                  </span>
+                </div>
+
+                {/* Document Table */}
+                <table className="w-full text-left border-collapse text-[10.5px] border border-[#CBD5E1]">
+                  <thead>
+                    <tr className="bg-[#1E293B] text-white text-[9.5px] uppercase font-bold tracking-wider">
+                      <th className="p-1.5 border border-slate-600">Seam Identification</th>
+                      <th className="p-1.5 border border-slate-600">Coal Grade</th>
+                      <th className="p-1.5 border border-slate-600 text-right">Target (MT)</th>
+                      <th className="p-1.5 border border-slate-600 text-right">Actual Prod. (MT)</th>
+                      <th className="p-1.5 border border-slate-600 text-right">Proved Reserves (MT)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#CBD5E1]">
+                    <tr>
+                      <td className="p-1.5 border border-[#CBD5E1] font-medium">Seam VII/VIII (Upper Block)</td>
+                      <td className="p-1.5 border border-[#CBD5E1]">W-III Steel Coking</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">3.20</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">3.12</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">24.50</td>
+                    </tr>
+
+                    {/* TARGET HIGHLIGHTED SOURCE ROW */}
+                    <tr className="bg-amber-500/20 border-2 border-amber-500 font-semibold shadow-inner">
+                      <td className="p-2 border border-amber-400 text-[#1E293B] flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 inline-block shrink-0" />
+                        <span>Seam IX/X (Deep Horizon)</span>
+                      </td>
+                      <td className="p-2 border border-amber-400 text-[#1E293B] font-medium">
+                        W-IV Semi-Coking
+                      </td>
+                      <td className="p-2 border border-amber-400 text-right font-mono text-[#1E293B]">
+                        4.50
+                      </td>
+                      <td className="p-2 border border-amber-400 text-right font-mono font-bold text-amber-700 bg-amber-500/30">
+                        {current.production}
+                      </td>
+                      <td className="p-2 border border-amber-400 text-right font-mono font-bold text-amber-700 bg-amber-500/30">
+                        {current.reserve}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="p-1.5 border border-[#CBD5E1] font-medium">Seam XI/XII (Colliery South)</td>
+                      <td className="p-1.5 border border-[#CBD5E1]">Steel Grade I</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">2.10</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">1.94</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">14.10</td>
+                    </tr>
+
+                    <tr>
+                      <td className="p-1.5 border border-[#CBD5E1] font-medium">Seam XIII (East Incline)</td>
+                      <td className="p-1.5 border border-[#CBD5E1]">W-II Coking</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">1.80</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">1.75</td>
+                      <td className="p-1.5 border border-[#CBD5E1] text-right font-mono">11.85</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <p className="text-[9px] text-[#64748B] italic mt-3">
+                  * Note 2: Longwall expansion in Seam IX/X commissioned during Q3 yielded higher extraction than initial forecast. Proved reserves certified under UNFC Code 111.
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom OCR Bounding Box Info Card */}
+            <div className="p-4 border-t border-[#D5DEE8]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#1E293B]">
+                  <Sparkles size={13} className="text-amber-500" />
+                  <span>OCR Match: {current.sourceSnippet}</span>
+                </div>
+                <div className="text-[10.5px] font-mono text-[#64748B] mt-0.5">
+                  Spatial Coordinates: Box {current.spatialBox} · Page {current.sourcePage}
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#10B981] px-2 py-0.5 rounded-lg bg-emerald-500/10 shrink-0">
+                Confidence {current.confidence}%
+              </span>
+            </div>
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-          {/* LEFT: Document "Preview" + Source Text */}
-          <div className="xl:col-span-2 space-y-4">
-            <div className="neu-card p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <FileText size={16} className="text-[#475569]" />
-                <div>
-                  <p className="text-xs font-bold text-[#1E293B]">{current.docName}</p>
-                  <p className="text-[10px] text-[#64748B]">Page {current.sourcePage}</p>
-                </div>
-              </div>
 
-              {/* Simulated document page */}
-              <div className="relative bg-white rounded-xl border border-[#D5DEE8] p-5 font-mono text-[11px] leading-relaxed text-[#475569] min-h-[200px]">
-                <div className="absolute top-2 right-2 text-[9px] bg-[#E8EDF5] px-2 py-0.5 rounded text-[#64748B]">
-                  Page {current.sourcePage}
-                </div>
-                <p className="text-[#CBD5E1] mb-2">
-                  {Array(3).fill("Lorem ipsum dolor sit amet, consectetur adipiscing elit.").join(" ")}
-                </p>
-                {/* Highlighted source snippet */}
-                <span className="bg-amber-200/80 text-[#92400E] px-1 rounded font-semibold leading-loose">
-                  {current.sourceSnippet}
-                </span>
-                <p className="text-[#CBD5E1] mt-2">
-                  {Array(2).fill("Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.").join(" ")}
-                </p>
-              </div>
-              <p className="text-[10px] text-amber-700 mt-2 flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded bg-amber-200 inline-block" />
-                Highlighted: AI extracted source text
-              </p>
+        {/* ── RIGHT COLUMN (6 cols): Structured Extraction, Warning, Comments & Actions ── */}
+        <div className="lg:col-span-6 neu-card p-6 space-y-5">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-[#D5DEE8]/60">
+            <div>
+              <h3 className="text-base font-bold text-[#1E293B]">Structured Extraction</h3>
+              <p className="text-xs text-[#64748B]">Verify and sign off on extracted domain parameters</p>
             </div>
-
-            {/* Navigation between records */}
-            <div className="flex items-center justify-between">
-              <button onClick={() => { setIdx(Math.max(0, idx - 1)); setEditing(false); }}
-                disabled={idx === 0}
-                className="neu-btn px-4 py-2 rounded-xl text-xs font-bold text-[#1E293B] flex items-center gap-1.5 cursor-pointer disabled:opacity-40">
-                <ChevronLeft size={14} /> Prev
-              </button>
-              <div className="flex gap-1.5">
-                {queue.map((_, i) => (
-                  <button key={i} onClick={() => { setIdx(i); setEditing(false); }}
-                    className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${i === idx ? "bg-[#1E293B]" : "bg-[#D5DEE8]"}`} />
-                ))}
-              </div>
-              <button onClick={() => { setIdx(Math.min(queue.length - 1, idx + 1)); setEditing(false); }}
-                disabled={idx === queue.length - 1}
-                className="neu-btn px-4 py-2 rounded-xl text-xs font-bold text-[#1E293B] flex items-center gap-1.5 cursor-pointer disabled:opacity-40">
-                Next <ChevronRight size={14} />
-              </button>
-            </div>
+            <span className="text-[10px] font-mono font-semibold text-[#64748B] px-2 py-0.5 rounded-lg neu-inset">
+              DOC-ID: #2023-BCCL-084
+            </span>
           </div>
 
-          {/* RIGHT: Extracted Fields + Actions */}
-          <div className="xl:col-span-3 space-y-4">
-            {/* Confidence */}
-            <div className="neu-card p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-[#10B981]" />
-                  <span className="text-sm font-bold text-[#1E293B]">AI Confidence Score</span>
-                </div>
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  current.confidence >= 90 ? "bg-emerald-500/10 text-[#10B981]"
-                  : current.confidence >= 75 ? "bg-amber-500/10 text-amber-700"
-                  : "bg-rose-500/10 text-rose-700"
-                }`}>
-                  {current.confidence >= 90 ? "High" : current.confidence >= 75 ? "Medium" : "Low"} Confidence
+          {/* Form Fields: Project, Year, Production, Reserve */}
+          <div className="space-y-4">
+            {/* Project Name */}
+            <div>
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                <span>Project Name</span>
+                <span className="text-[#10B981] text-[10px] flex items-center gap-1">
+                  <CheckCircle2 size={11} /> VERIFIED NER
                 </span>
               </div>
-              <ConfidenceBar value={current.confidence} />
+              {isEditing ? (
+                <div className="neu-inset p-2">
+                  <input
+                    type="text"
+                    value={editForm.project}
+                    onChange={(e) => setEditForm({ ...editForm, project: e.target.value })}
+                    className="w-full bg-transparent outline-none text-xs font-bold text-[#1E293B]"
+                  />
+                </div>
+              ) : (
+                <div className="neu-inset p-3 text-sm font-extrabold text-[#1E293B]">
+                  {current.project}
+                </div>
+              )}
             </div>
 
-            {/* Warnings */}
-            {current.warnings.length > 0 && (
-              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-700">
-                  <AlertTriangle size={14} /> Validation Warnings
+            {/* Reporting Year */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                Reporting Year
+              </label>
+              {isEditing ? (
+                <div className="neu-inset p-2">
+                  <input
+                    type="text"
+                    value={editForm.year}
+                    onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+                    className="w-full bg-transparent outline-none text-xs font-mono font-bold text-[#1E293B]"
+                  />
                 </div>
-                {current.warnings.map((w, i) => (
-                  <p key={i} className="text-xs text-amber-700 pl-5">• {w}</p>
-                ))}
-              </div>
-            )}
+              ) : (
+                <div className="neu-inset p-3 text-xs font-mono font-bold text-[#1E293B]">
+                  {current.year}
+                </div>
+              )}
+            </div>
 
-            {/* Extracted Fields */}
-            <div className="neu-card p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-[#1E293B]">Extracted Fields</h3>
-                {!editing && (
-                  <button onClick={startEdit}
-                    className="flex items-center gap-1.5 text-xs font-bold text-[#475569] hover:text-[#1E293B] cursor-pointer">
-                    <Edit3 size={13} /> Edit Fields
-                  </button>
+            {/* Production & Reserve */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Production */}
+              <div>
+                <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                  <span>Production Val</span>
+                  <span className="text-[10px] font-mono text-[#10B981]">CONF: 94%</span>
+                </div>
+                {isEditing ? (
+                  <div className="neu-inset p-2">
+                    <input
+                      type="text"
+                      value={editForm.production}
+                      onChange={(e) => setEditForm({ ...editForm, production: e.target.value })}
+                      className="w-full bg-transparent outline-none text-sm font-mono font-bold text-[#1E293B]"
+                    />
+                  </div>
+                ) : (
+                  <div className="neu-inset p-3">
+                    <span className="text-lg font-mono font-extrabold text-[#1E293B] block">
+                      {current.production}
+                    </span>
+                    <span className="text-[10px] text-[#64748B]">Metric Tonnes</span>
+                  </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { key: "project",    label: "Project / Mine Block" },
-                  { key: "year",       label: "Financial Year" },
-                  { key: "production", label: "Production (MT)" },
-                  { key: "reserve",    label: "Reserve (MT)" },
-                ].map(({ key, label }) => (
-                  <div key={key} className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">{label}</label>
-                    {editing ? (
-                      <div className="neu-inset px-3 py-2">
-                        <input
-                          value={editFields[key] ?? ""}
-                          onChange={(e) => setEditFields((p) => ({ ...p, [key]: e.target.value }))}
-                          className="w-full bg-transparent outline-none border-none text-xs font-bold text-[#1E293B]"
-                        />
-                      </div>
-                    ) : (
-                      <div className="neu-inset px-3 py-2">
-                        <p className="text-xs font-bold text-[#1E293B]">{current[key]}</p>
-                      </div>
-                    )}
+              {/* Reserve */}
+              <div>
+                <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                  <span>Reserve Val</span>
+                  <span className="text-[10px] font-mono text-[#10B981]">CONF: 88%</span>
+                </div>
+                {isEditing ? (
+                  <div className="neu-inset p-2">
+                    <input
+                      type="text"
+                      value={editForm.reserve}
+                      onChange={(e) => setEditForm({ ...editForm, reserve: e.target.value })}
+                      className="w-full bg-transparent outline-none text-sm font-mono font-bold text-[#1E293B]"
+                    />
                   </div>
-                ))}
-              </div>
-
-              {/* Source reference */}
-              <div className="mt-4 pt-3 border-t border-[#D5DEE8]/60 flex items-center justify-between text-[10px] text-[#64748B]">
-                <span>Source: <strong className="text-[#475569]">{current.docName}</strong></span>
-                <span>Page {current.sourcePage}</span>
+                ) : (
+                  <div className="neu-inset p-3">
+                    <span className="text-lg font-mono font-extrabold text-[#1E293B] block">
+                      {current.reserve}
+                    </span>
+                    <span className="text-[10px] text-[#64748B]">Proved In-Situ</span>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Action Buttons */}
+          {/* Confidence Score */}
+          <div className="neu-card-sm p-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#1E293B]">
+              <CheckCircle2 size={15} className="text-[#10B981]" />
+              <span>Extraction Confidence</span>
+            </div>
+            <span className="text-xs font-bold text-[#10B981] font-mono">
+              {current.confidence}% (High Confidence)
+            </span>
+          </div>
+
+          {/* Validation Warning */}
+          {current.warnings && current.warnings.length > 0 && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 space-y-1.5 text-xs">
+              <div className="flex items-center justify-between font-bold text-amber-900">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle size={15} className="text-amber-600" />
+                  <span>Historical Variance Trigger</span>
+                </div>
+                <span className="text-[10px] font-mono">+14.2% YoY</span>
+              </div>
+              <p className="text-amber-900/90 leading-relaxed text-[11.5px]">
+                {current.warnings[0]}
+              </p>
+            </div>
+          )}
+
+          {/* Reviewer Comment Field */}
+          <div>
+            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+              <span>Reviewer Comment * (Audit Trail)</span>
+              <span className="text-[10px] font-mono text-[#64748B]">
+                {reviewerComment.length}/500
+              </span>
+            </div>
+            <div className="neu-inset p-3">
+              <textarea
+                rows={3}
+                value={reviewerComment}
+                onChange={(e) => setReviewerComment(e.target.value)}
+                placeholder="Enter validation notes or justification for approval/edits…"
+                className="w-full bg-transparent outline-none border-none text-xs text-[#1E293B] leading-relaxed resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons: Edit, Approve, Reject */}
+          <div className="space-y-3 pt-2">
             <div className="flex items-center gap-3">
-              {editing ? (
-                <>
-                  <button onClick={() => setEditing(false)}
-                    className="flex-1 neu-btn py-3 rounded-2xl text-xs font-bold text-[#475569] flex items-center justify-center gap-2 cursor-pointer">
-                    <X size={15} /> Cancel
-                  </button>
-                  <button onClick={handleSaveEdit}
-                    className="flex-1 neu-btn-dark py-3 rounded-2xl text-xs font-bold text-white flex items-center justify-center gap-2 cursor-pointer">
-                    <Check size={15} /> Save & Approve
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button onClick={handleReject}
-                    className="flex-1 py-3 rounded-2xl text-xs font-bold text-rose-700 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all">
-                    <X size={15} /> Reject
-                  </button>
-                  <button onClick={startEdit}
-                    className="flex-1 neu-btn py-3 rounded-2xl text-xs font-bold text-[#475569] flex items-center justify-center gap-2 cursor-pointer">
-                    <Edit3 size={15} /> Edit
-                  </button>
-                  <button onClick={handleApprove}
-                    className="flex-1 neu-btn-dark py-3 rounded-2xl text-xs font-bold text-white flex items-center justify-center gap-2 cursor-pointer">
-                    <Check size={15} /> Approve
-                  </button>
-                </>
-              )}
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="neu-btn px-4 py-2.5 rounded-2xl text-xs font-bold text-[#1E293B] flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 size={14} className="text-[#475569]" />
+                <span>{isEditing ? "Cancel Edit" : "Edit Fields"}</span>
+              </button>
+
+              <button
+                onClick={handleApprove}
+                className="neu-btn-dark flex-1 py-2.5 px-4 rounded-2xl text-xs font-bold text-white flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Check size={16} />
+                <span>{isEditing ? "Save & Approve Record" : "Approve Record"}</span>
+              </button>
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={handleReject}
+                className="text-xs font-semibold text-rose-600 hover:text-rose-800 hover:underline cursor-pointer"
+              >
+                Reject to Quarantine
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
