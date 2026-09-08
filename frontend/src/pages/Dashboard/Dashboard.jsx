@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FileText,
@@ -9,8 +9,24 @@ import {
   TrendingUp,
   Upload,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
+
+const MONTH_DATA = [
+  { m: "Apr", full: "April 2023", prod: 52.4, target: 50.0, cumProd: 52.4, cumTarget: 50.0, x: 35, my: 124, cy: 142 },
+  { m: "May", full: "May 2023", prod: 54.1, target: 52.0, cumProd: 106.5, cumTarget: 102.0, x: 110, my: 119, cy: 133 },
+  { m: "Jun", full: "June 2023", prod: 56.0, target: 54.0, cumProd: 162.5, cumTarget: 156.0, x: 185, my: 114, cy: 124 },
+  { m: "Jul", full: "July 2023", prod: 58.2, target: 56.0, cumProd: 220.7, cumTarget: 212.0, x: 260, my: 109, cy: 115 },
+  { m: "Aug", full: "August 2023", prod: 60.4, target: 58.0, cumProd: 281.1, cumTarget: 270.0, x: 335, my: 103, cy: 106 },
+  { m: "Sep", full: "September 2023", prod: 62.1, target: 60.0, cumProd: 343.2, cumTarget: 330.0, x: 410, my: 97, cy: 96 },
+  { m: "Oct", full: "October 2023", prod: 64.0, target: 62.0, cumProd: 407.2, cumTarget: 392.0, x: 485, my: 91, cy: 86 },
+  { m: "Nov", full: "November 2023", prod: 65.5, target: 64.0, cumProd: 472.7, cumTarget: 456.0, x: 560, my: 86, cy: 76 },
+  { m: "Dec", full: "December 2023", prod: 67.2, target: 65.0, cumProd: 539.9, cumTarget: 521.0, x: 635, my: 81, cy: 65 },
+  { m: "Jan", full: "January 2024", prod: 70.1, target: 66.0, cumProd: 610.0, cumTarget: 587.0, x: 710, my: 71, cy: 53 },
+  { m: "Feb", full: "February 2024", prod: 72.8, target: 68.0, cumProd: 682.8, cumTarget: 655.0, x: 785, my: 61, cy: 40 },
+  { m: "Mar", full: "March 2024", prod: 74.2, target: 70.0, cumProd: 752.4, cumTarget: 780.0, x: 860, my: 53, cy: 26 },
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -22,6 +38,35 @@ const Dashboard = () => {
     conflictCount,
     setSelectedRecordId,
   } = useApp();
+
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(11); // March
+  const [hoveredMonthIdx, setHoveredMonthIdx] = useState(null);
+  const [chartMode, setChartMode] = useState("monthly"); // "monthly" | "cumulative"
+
+  const activeIdx = hoveredMonthIdx !== null ? hoveredMonthIdx : selectedMonthIdx;
+  const activePt = MONTH_DATA[activeIdx] || MONTH_DATA[11];
+
+  const handleChartMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const ratio = mouseX / rect.width;
+    const idx = Math.min(11, Math.max(0, Math.floor(ratio * 12)));
+    if (idx !== hoveredMonthIdx) {
+      setHoveredMonthIdx(idx);
+    }
+  };
+
+  const handleChartMouseLeave = () => {
+    setHoveredMonthIdx(null);
+  };
+
+  const handleChartClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const ratio = mouseX / rect.width;
+    const idx = Math.min(11, Math.max(0, Math.floor(ratio * 12)));
+    setSelectedMonthIdx(idx);
+  };
 
   const handleReviewClick = (recordId) => {
     setSelectedRecordId(recordId);
@@ -163,7 +208,10 @@ const Dashboard = () => {
         </div>
 
         {/* 4. Conflicts */}
-        <div className="neu-card p-5.5 flex flex-col justify-between">
+        <div
+          onClick={() => navigate("/validation")}
+          className="neu-card p-5.5 flex flex-col justify-between cursor-pointer hover:translate-y-[-2px] transition-all"
+        >
           <div className="flex items-start justify-between gap-2">
             <div>
               <span className="text-[11.5px] font-bold uppercase tracking-[0.06em] text-rose-700 block">
@@ -178,42 +226,111 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#D5DEE8]/50 text-[11px]">
-            <span className="text-[#64748B]">Discrepancies</span>
+            <span className="text-[#64748B]">Open queue →</span>
             <span className="font-bold text-rose-700 px-2 py-0.5 rounded-lg bg-rose-500/15 uppercase text-[10px]">
-              Action Needed
+              {conflictCount} In Review
             </span>
           </div>
         </div>
       </div>
 
-      {/* ── ONE SMALL PRODUCTION TREND CHART ── */}
+      {/* ── ONE SMALL PRODUCTION TREND CHART (FULLY INTERACTIVE) ── */}
       <div className="neu-card p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#D5DEE8]/60">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-[#D5DEE8]/60">
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-[#1E293B]">
               <TrendingUp size={16} className="text-[#10B981]" />
               <span>Monthly Coal Production Trend</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-[#10B981] border border-emerald-500/20">
+                Interactive
+              </span>
             </div>
             <p className="text-[11px] text-[#64748B] mt-0.5">
               Reconciled extraction volume (Million Tonnes) across operational subsidiaries (FY 2023-24)
             </p>
           </div>
-          <div className="flex items-center gap-4 text-xs font-semibold">
-            <div className="flex items-center gap-1.5 text-[#64748B]">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#94A3B8]" />
-              <span>Target: 780 MT</span>
+
+          <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
+            {/* View Mode Toggle */}
+            <div className="neu-inset p-1 rounded-xl flex items-center gap-1">
+              <button
+                onClick={() => setChartMode("monthly")}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  chartMode === "monthly"
+                    ? "bg-[#1E293B] text-white shadow-sm"
+                    : "text-[#64748B] hover:text-[#1E293B]"
+                }`}
+              >
+                Monthly Trend
+              </button>
+              <button
+                onClick={() => setChartMode("cumulative")}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  chartMode === "cumulative"
+                    ? "bg-[#1E293B] text-white shadow-sm"
+                    : "text-[#64748B] hover:text-[#1E293B]"
+                }`}
+              >
+                Cumulative (752.4 MT)
+              </button>
             </div>
-            <div className="flex items-center gap-1.5 text-[#10B981]">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
-              <span>Reconciled: 752.4 MT</span>
+
+            {/* Target & Reconciled legends */}
+            <div className="flex items-center gap-3 text-[11.5px]">
+              <div className="flex items-center gap-1.5 text-[#64748B]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#94A3B8]" />
+                <span>Target: 780 MT</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[#10B981]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+                <span>Reconciled: 752.4 MT</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Soft Neumorphic SVG Trend Curve */}
-        <div className="pt-5 pb-2">
-          <div className="relative h-44 w-full">
-            <svg viewBox="0 0 900 160" className="w-full h-full overflow-visible">
+        {/* Dynamic Month Metric Callout Bar */}
+        <div className="mt-3.5 px-4 py-2.5 rounded-2xl bg-[#E8EDF5] shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(163,177,198,0.35)] flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">Selected:</span>
+            <span className="font-extrabold text-[#1E293B]">{activePt.full}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            <div>
+              <span className="text-[#64748B] text-[11px]">Production: </span>
+              <span className="font-mono font-extrabold text-[#1E293B]">
+                {chartMode === "monthly" ? activePt.prod : activePt.cumProd} MT
+              </span>
+            </div>
+            <div>
+              <span className="text-[#64748B] text-[11px]">Target: </span>
+              <span className="font-mono font-bold text-[#64748B]">
+                {chartMode === "monthly" ? activePt.target : activePt.cumTarget} MT
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/15 text-[#10B981] font-mono">
+                {chartMode === "monthly"
+                  ? `+${(activePt.prod - activePt.target).toFixed(1)} MT (+${(((activePt.prod - activePt.target) / activePt.target) * 100).toFixed(1)}%)`
+                  : `${(((activePt.cumProd) / 780) * 100).toFixed(1)}% of Annual Goal`}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Soft Neumorphic High-Performance Interactive SVG Trend Curve */}
+        <div className="pt-4 pb-2">
+          <div
+            className="relative h-52 w-full select-none cursor-crosshair"
+            onMouseMove={handleChartMouseMove}
+            onMouseLeave={handleChartMouseLeave}
+            onClick={handleChartClick}
+          >
+            <svg
+              viewBox="0 0 900 170"
+              className="w-full h-full overflow-visible pointer-events-none"
+            >
               <defs>
                 <linearGradient id="neuTrendGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
@@ -225,55 +342,135 @@ const Dashboard = () => {
               <line x1="0" y1="30" x2="900" y2="30" stroke="#CBD5E1" strokeDasharray="3 3" opacity="0.6" />
               <line x1="0" y1="70" x2="900" y2="70" stroke="#CBD5E1" strokeDasharray="3 3" opacity="0.6" />
               <line x1="0" y1="110" x2="900" y2="110" stroke="#CBD5E1" strokeDasharray="3 3" opacity="0.6" />
-              <line x1="0" y1="150" x2="900" y2="150" stroke="#CBD5E1" />
+              <line x1="0" y1="146" x2="900" y2="146" stroke="#CBD5E1" opacity="0.8" />
 
               {/* Target baseline */}
-              <line x1="0" y1="45" x2="900" y2="45" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="5 5" />
+              <line
+                x1="0"
+                y1={chartMode === "monthly" ? "48" : "30"}
+                x2="900"
+                y2={chartMode === "monthly" ? "48" : "30"}
+                stroke="#94A3B8"
+                strokeWidth="1.5"
+                strokeDasharray="5 5"
+              />
 
               {/* Area under curve */}
               <path
-                d="M 20 120 Q 100 115 180 110 T 340 100 T 500 90 T 660 82 T 820 62 L 870 56 L 870 150 L 20 150 Z"
+                d={
+                  chartMode === "monthly"
+                    ? "M 35 124 Q 110 119 185 114 T 335 103 T 485 91 T 635 81 T 785 61 L 860 53 L 860 146 L 35 146 Z"
+                    : "M 35 142 Q 110 133 185 124 T 335 106 T 485 86 T 635 65 T 785 40 L 860 26 L 860 146 L 35 146 Z"
+                }
                 fill="url(#neuTrendGrad)"
               />
 
               {/* Trend line */}
               <path
-                d="M 20 120 Q 100 115 180 110 T 340 100 T 500 90 T 660 82 T 820 62 L 870 56"
+                d={
+                  chartMode === "monthly"
+                    ? "M 35 124 Q 110 119 185 114 T 335 103 T 485 91 T 635 81 T 785 61 L 860 53"
+                    : "M 35 142 Q 110 133 185 124 T 335 106 T 485 86 T 635 65 T 785 40 L 860 26"
+                }
                 fill="none"
                 stroke="#1E293B"
                 strokeWidth="2.5"
               />
 
+              {/* Active Month Vertical Crosshair */}
+              {activePt && (
+                <line
+                  x1={activePt.x}
+                  y1="15"
+                  x2={activePt.x}
+                  y2="146"
+                  stroke="#10B981"
+                  strokeWidth="1.5"
+                  strokeDasharray="3 3"
+                  opacity="0.85"
+                />
+              )}
+
               {/* Monthly Points */}
-              {[
-                { x: 20, y: 120, m: "Apr", v: "52.4 MT" },
-                { x: 100, y: 115, m: "May", v: "54.1 MT" },
-                { x: 180, y: 110, m: "Jun", v: "56.0 MT" },
-                { x: 260, y: 105, m: "Jul", v: "58.2 MT" },
-                { x: 340, y: 100, m: "Aug", v: "60.4 MT" },
-                { x: 420, y: 95, m: "Sep", v: "62.1 MT" },
-                { x: 500, y: 90, m: "Oct", v: "64.0 MT" },
-                { x: 580, y: 86, m: "Nov", v: "65.5 MT" },
-                { x: 660, y: 82, m: "Dec", v: "67.2 MT" },
-                { x: 740, y: 72, m: "Jan", v: "70.1 MT" },
-                { x: 820, y: 62, m: "Feb", v: "72.8 MT" },
-                { x: 870, y: 56, m: "Mar", v: "74.2 MT" },
-              ].map((pt, i) => (
-                <g key={i}>
-                  <circle cx={pt.x} cy={pt.y} r="4.5" fill="#1E293B" stroke="#FFFFFF" strokeWidth="2" />
-                  <text x={pt.x} y="160" textAnchor="middle" fontSize="10.5" fill="#64748B" fontWeight="600">
-                    {pt.m}
-                  </text>
-                  {i === 11 && (
-                    <g>
-                      <rect x={pt.x - 30} y={pt.y - 28} width="60" height="22" rx="6" fill="#1E293B" />
-                      <text x={pt.x} y={pt.y - 13} textAnchor="middle" fontSize="10.5" fill="#FFFFFF" fontWeight="bold">
-                        {pt.v}
+              {MONTH_DATA.map((pt, i) => {
+                const ptY = chartMode === "monthly" ? pt.my : pt.cy;
+                const isCurrent = i === activeIdx;
+
+                return (
+                  <g key={i}>
+                    {/* Active Point Halo */}
+                    {isCurrent && (
+                      <circle cx={pt.x} cy={ptY} r="7.5" fill="#10B981" fillOpacity="0.35" />
+                    )}
+
+                    {/* Point Circle */}
+                    <circle
+                      cx={pt.x}
+                      cy={ptY}
+                      r={isCurrent ? "5" : "3.5"}
+                      fill={isCurrent ? "#10B981" : "#1E293B"}
+                      stroke="#FFFFFF"
+                      strokeWidth={isCurrent ? "2" : "1.5"}
+                    />
+
+                    {/* Single X-Axis Month Label */}
+                    <text
+                      x={pt.x}
+                      y="163"
+                      textAnchor="middle"
+                      fontSize={isCurrent ? "11.5" : "10"}
+                      fill={isCurrent ? "#10B981" : "#64748B"}
+                      fontWeight={isCurrent ? "800" : "500"}
+                    >
+                      {pt.m}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Clean Snappy Floating Tooltip */}
+              {activePt && (
+                (() => {
+                  const ptY = chartMode === "monthly" ? activePt.my : activePt.cy;
+                  const tooltipWidth = 104;
+                  const tooltipHeight = 36;
+                  const tooltipX = Math.min(Math.max(activePt.x - tooltipWidth / 2, 10), 900 - tooltipWidth - 10);
+                  const tooltipY = Math.max(ptY - tooltipHeight - 10, 8);
+
+                  return (
+                    <g pointerEvents="none" className="pointer-events-none" transform={`translate(${tooltipX}, ${tooltipY})`}>
+                      <rect
+                        width={tooltipWidth}
+                        height={tooltipHeight}
+                        rx="8"
+                        fill="#1E293B"
+                      />
+                      <text
+                        x={tooltipWidth / 2}
+                        y="15"
+                        textAnchor="middle"
+                        fontSize="10"
+                        fill="#FFFFFF"
+                        fontWeight="bold"
+                      >
+                        {activePt.m}: {chartMode === "monthly" ? activePt.prod : activePt.cumProd} MT
+                      </text>
+                      <text
+                        x={tooltipWidth / 2}
+                        y="27"
+                        textAnchor="middle"
+                        fontSize="8.5"
+                        fill="#10B981"
+                        fontWeight="600"
+                      >
+                        {chartMode === "monthly"
+                          ? `+${(activePt.prod - activePt.target).toFixed(1)} MT vs Target`
+                          : "Reconciled CIL DB"}
                       </text>
                     </g>
-                  )}
-                </g>
-              ))}
+                  );
+                })()
+              )}
             </svg>
           </div>
         </div>
@@ -323,10 +520,15 @@ const Dashboard = () => {
                     </span>
                   </div>
 
-                  {item.warnings && item.warnings.length > 0 && (
+                  {item.warnings && item.warnings.length > 0 && item.confidence < 90 ? (
                     <div className="flex items-start gap-1.5 p-2 rounded-xl bg-amber-500/10 text-[10.5px] text-amber-900 font-medium">
                       <AlertTriangle size={13} className="text-amber-600 shrink-0 mt-0.5" />
                       <span className="line-clamp-2">{item.warnings[0]}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 p-1.5 px-2.5 rounded-xl bg-emerald-500/10 text-[10.5px] text-emerald-800 font-medium">
+                      <CheckCircle2 size={13} className="text-[#10B981] shrink-0" />
+                      <span>Extraction confidence {item.confidence}% · No flags detected</span>
                     </div>
                   )}
 

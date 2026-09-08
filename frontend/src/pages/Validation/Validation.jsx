@@ -264,13 +264,19 @@ const Validation = () => {
                     Government of India · Ministry of Coal
                   </div>
                   <h2 className="text-base font-black uppercase tracking-wide text-[#1E293B] mt-0.5">
-                    BHARAT COKING COAL LIMITED
+                    {current.subsidiary === "BCCL"
+                      ? "BHARAT COKING COAL LIMITED"
+                      : current.subsidiary === "SECL"
+                      ? "SOUTH EASTERN COALFIELDS LIMITED"
+                      : current.subsidiary === "NCL"
+                      ? "NORTHERN COALFIELDS LIMITED"
+                      : "EASTERN COALFIELDS LIMITED"}
                   </h2>
                   <p className="text-[10px] text-[#475569] font-semibold">
                     (A SUBSIDIARY OF COAL INDIA LIMITED - A GOVT. OF INDIA UNDERTAKING)
                   </p>
                   <p className="text-[9.5px] text-[#64748B] mt-1 font-mono">
-                    JHARIA COALFIELD DIVISION · OPERATIONAL REVIEW {current.year}
+                    {current.colliery.toUpperCase()} · OPERATIONAL REVIEW {current.year}
                   </p>
                 </div>
 
@@ -483,26 +489,70 @@ const Validation = () => {
           {/* Confidence Score */}
           <div className="neu-card-sm p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold text-[#1E293B]">
-              <CheckCircle2 size={15} className="text-[#10B981]" />
+              {current.confidence < 70 ? (
+                <AlertTriangle size={15} className="text-rose-600" />
+              ) : (
+                <CheckCircle2 size={15} className="text-[#10B981]" />
+              )}
               <span>Extraction Confidence</span>
             </div>
-            <span className="text-xs font-bold text-[#10B981] font-mono">
-              {current.confidence}% (High Confidence)
+            <span
+              className={`text-xs font-bold font-mono ${
+                current.confidence < 70
+                  ? "text-rose-600"
+                  : current.confidence >= 90
+                  ? "text-[#10B981]"
+                  : "text-[#1E293B]"
+              }`}
+            >
+              {current.confidence}% {current.confidence < 70 ? "(Low Confidence)" : "(Verified NER)"}
             </span>
           </div>
 
-          {/* Validation Warning */}
-          {current.warnings && current.warnings.length > 0 && (
-            <div className="p-4 rounded-2xl bg-amber-500/10 space-y-1.5 text-xs">
-              <div className="flex items-center justify-between font-bold text-amber-900">
+          {/* Validation Warning / Conflict / Clean Status */}
+          {current.confidence < 70 && current.warnings && current.warnings.length > 0 ? (
+            <div className="p-4 rounded-2xl bg-rose-500/10 space-y-1.5 text-xs border border-rose-500/20">
+              <div className="flex items-center justify-between font-bold text-rose-900">
                 <div className="flex items-center gap-1.5">
-                  <AlertTriangle size={15} className="text-amber-600" />
-                  <span>Historical Variance Trigger</span>
+                  <AlertTriangle size={15} className="text-rose-600" />
+                  <span>Extraction Conflict (Score &lt; 70%)</span>
                 </div>
-                <span className="text-[10px] font-mono">+14.2% YoY</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-800 font-bold">
+                  Review Required
+                </span>
               </div>
-              <p className="text-amber-900/90 leading-relaxed text-[11.5px]">
+              <p className="text-rose-950 leading-relaxed text-[11.5px] font-medium">
                 {current.warnings[0]}
+              </p>
+            </div>
+          ) : current.confidence >= 90 ? (
+            <div className="p-4 rounded-2xl bg-emerald-500/10 space-y-1.5 text-xs">
+              <div className="flex items-center justify-between font-bold text-emerald-900">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-[#10B981]" />
+                  <span>Confidence Score {current.confidence}% — No Flags</span>
+                </div>
+                <span className="text-[10px] font-mono uppercase bg-emerald-500/20 text-[#10B981] px-2 py-0.5 rounded-md font-bold">
+                  Auto-Verified
+                </span>
+              </div>
+              <p className="text-[#475569] leading-relaxed text-[11.5px]">
+                Extraction exceeds the 90% threshold. Tabular OCR and NER boundaries match source document with zero anomaly flags.
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-[#E8EDF5] shadow-[inset_1px_1px_3px_rgba(163,177,198,0.4),inset_-1px_-1px_3px_rgba(255,255,255,0.8)] space-y-1.5 text-xs">
+              <div className="flex items-center justify-between font-bold text-[#1E293B]">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-[#10B981]" />
+                  <span>Confidence Score {current.confidence}% — Clean Record</span>
+                </div>
+                <span className="text-[10px] font-mono uppercase bg-emerald-500/15 text-[#10B981] px-2 py-0.5 rounded-md font-bold">
+                  Ready to Sign
+                </span>
+              </div>
+              <p className="text-[#64748B] leading-relaxed text-[11.5px]">
+                Reliable extraction score ({current.confidence}%). No tabular conflicts or baseline discrepancies detected. Ready for human validation sign-off.
               </p>
             </div>
           )}

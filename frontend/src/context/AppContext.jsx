@@ -70,16 +70,14 @@ const INITIAL_RECORDS = [
     productionVal: 4.85,
     reserve: "38.20 MT",
     reserveVal: 38.20,
-    status: "pending", // Pending human review
-    confidence: 89,
+    status: "pending", // Pending human review (Score 86%)
+    confidence: 86,
     sourcePage: 4,
     sourceTable: "Table 2.1: Seam-Wise Production Targets & Proved Reserves Breakdown",
     sourceSnippet: "Seam IX/X (Deep Horizon) | Semi-Coking W-IV | Target: 4.50 MT | Actual: 4.85 MT | Proved Reserves: 38.20 MT",
     spatialBox: "[X:142, Y:528, W:820, H:38]",
-    warnings: [
-      "HISTORICAL VARIANCE TRIGGER (+14.2% YoY): Production reported is 4.85 MT vs FY22 baseline of 4.25 MT. Confirmed by Section 2 longwall addition footnote."
-    ],
-    reviewerComment: "Confirmed against Section 2 footnote: increase due to mechanized longwall commissioning in Q3.",
+    warnings: [],
+    reviewerComment: "Routine pending human review for FY23 seam parameters. High extraction confidence (86%).",
   },
   {
     id: "REC-002",
@@ -93,16 +91,14 @@ const INITIAL_RECORDS = [
     productionVal: 42.50,
     reserve: "410.00 MT",
     reserveVal: 410.00,
-    status: "pending", // Pending review
+    status: "validated", // Auto-verified: score is 91% (>= 90%)
     confidence: 91,
     sourcePage: 48,
     sourceTable: "Table 48: Open Cast Extraction & Proved Pit Margins",
     sourceSnippet: "Gevra Expansion Phase II | SECL Korba Zone | Reconciled Extraction: 42.50 MT | In-Situ Reserve: 410.00 MT",
     spatialBox: "[X:110, Y:415, W:790, H:42]",
-    warnings: [
-      "Historical +18% variance against baseline due to new 42-cu.m shovel deployment."
-    ],
-    reviewerComment: "",
+    warnings: [],
+    reviewerComment: "Auto-verified: high extraction confidence (91%) matches seam record parameters.",
   },
   {
     id: "REC-003",
@@ -158,14 +154,16 @@ const INITIAL_RECORDS = [
     productionVal: 21.40,
     reserve: "185.00 MT",
     reserveVal: 185.00,
-    status: "validated",
-    confidence: 98,
+    status: "pending", // Conflict 1: Score 68% (< 70%)
+    confidence: 68,
     sourcePage: 6,
     sourceTable: "Sheet: Annual Production and Reserves",
     sourceSnippet: "Singrauli Moher Basin Block-B recorded production of 21.40 MT. Total certified reserve: 185.00 MT.",
     spatialBox: "[X:105, Y:180, W:780, H:32]",
-    warnings: [],
-    reviewerComment: "Signed off by Senior Mine Geologist.",
+    warnings: [
+      "CROSS-DOCUMENT CITATION CONFLICT (Confidence: 68%): Table 3.2 reports dispatch as 21.40 MT while Section 4 Annexure lists 19.80 MT (-1.60 MT variance). Human resolution required."
+    ],
+    reviewerComment: "Discrepancy identified between monthly dispatch returns and annual summary.",
   },
   {
     id: "REC-006",
@@ -179,14 +177,16 @@ const INITIAL_RECORDS = [
     productionVal: 2.10,
     reserve: "45.80 MT",
     reserveVal: 45.80,
-    status: "validated",
-    confidence: 94,
+    status: "pending", // Conflict 2: Score 64% (< 70%)
+    confidence: 64,
     sourcePage: 19,
     sourceTable: "Section 7: Deep Seam Reserve Audit",
     sourceSnippet: "Raniganj Underground Colliery dispatched 2.10 MT of non-coking coal. Geological reserves stand at 45.80 MT.",
     spatialBox: "[X:130, Y:450, W:740, H:38]",
-    warnings: [],
-    reviewerComment: "Reconciled with ECL quarterly audit.",
+    warnings: [
+      "STATUTORY RESERVE DISCREPANCY (Confidence: 64%): Block boundary proved reserves of 45.80 MT exceed statutory lease ceiling by +11.2%. Audit trail sign-off mandatory."
+    ],
+    reviewerComment: "Lease boundary recalculation required before parliamentary submission.",
   },
   {
     id: "REC-007",
@@ -208,6 +208,29 @@ const INITIAL_RECORDS = [
     spatialBox: "[X:100, Y:190, W:800, H:34]",
     warnings: [],
     reviewerComment: "Validated and verified against statutory dispatch slips.",
+  },
+  {
+    id: "REC-008",
+    docId: "DOC-005",
+    docName: "CCL_Karanpura_Annual_2023.pdf",
+    project: "Karanpura South Sector III",
+    colliery: "South Karanpura Basin",
+    subsidiary: "CCL",
+    year: "FY 2022-23",
+    production: "1.85 MT",
+    productionVal: 1.85,
+    reserve: "31.20 MT",
+    reserveVal: 31.20,
+    status: "pending", // Conflict 3: Score 58% (< 70%)
+    confidence: 58,
+    sourcePage: 9,
+    sourceTable: "Table 9.1: Pit Margin Reconciliation",
+    sourceSnippet: "Karanpura South Sector III net dispatch: 1.85 MT vs siding manifest: 2.45 MT.",
+    spatialBox: "[X:115, Y:340, W:760, H:36]",
+    warnings: [
+      "HISTORICAL EXTRACTION CONFLICT (Confidence: 58%): Reconciled extraction 1.85 MT conflicts with railway siding dispatch ledger 2.45 MT (-24.5% discrepancy). Audit sign-off needed."
+    ],
+    reviewerComment: "Siding weight reconciliation pending review.",
   }
 ];
 
@@ -221,9 +244,9 @@ export const AppProvider = ({ children }) => {
   // Four KPI Metrics
   const processedCount = documents.length;
   const pendingQueue = records.filter((r) => r.status === "pending");
-  const pendingCount = pendingQueue.length;
+  const pendingCount = pendingQueue.length; // 4 records in human review
   const validatedCount = records.filter((r) => r.status === "validated").length;
-  const conflictCount = 3; // Documented citation conflicts requiring action
+  const conflictCount = pendingQueue.filter((r) => r.confidence < 70).length; // 3 conflicts (< 70%)
 
   // Upload document simulation (extracts Project, Year, Production, Reserve)
   const uploadDocument = (file) => {
