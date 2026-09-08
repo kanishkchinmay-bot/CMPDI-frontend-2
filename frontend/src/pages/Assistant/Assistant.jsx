@@ -165,7 +165,7 @@ const Assistant = () => {
           <span>Notice: AI Explains Validated Records. It Does Not Create Numerical Data.</span>
         </div>
         <p className="text-[#64748B] text-[11.5px] leading-relaxed">
-          All numeric metrics, tonnage calculations, and mine parameters reflect cryptographically hashed, signed audits from CMPDI repository.
+          All numeric metrics, tonnage calculations, and mine parameters reflect cryptographically hashed, signed audits from GeoMine Insights repository.
         </p>
       </div>
 
@@ -240,7 +240,7 @@ const Assistant = () => {
                 <span className="uppercase tracking-wide font-extrabold">No Validated Data Found</span>
               </div>
               <p className="text-xs text-[#475569] leading-relaxed">
-                Queried entity exists only in raw draft uploads or has not passed mandatory Human Review. Unverified data cannot be synthesized, calculated, or cited in official CMPDI/Coal India responses.
+                Queried entity exists only in raw draft uploads or has not passed mandatory Human Review. Unverified data cannot be synthesized, calculated, or cited in official GeoMine Insights/Coal India responses.
               </p>
               <div className="pt-2">
                 <button
@@ -368,7 +368,7 @@ const Assistant = () => {
           </div>
 
           <div className="pt-3 border-t border-[#D5DEE8]/60 text-[10.5px] text-[#64748B] leading-relaxed">
-            <strong>Statutory Mandate:</strong> Zero synthetic generation policy strictly enforced under Coal Mines (Special Provisions) Act & CMPDI Data Verification Standard.
+            <strong>Statutory Mandate:</strong> Zero synthetic generation policy strictly enforced under Coal Mines (Special Provisions) Act & GeoMine Insights Data Verification Standard.
           </div>
         </div>
       </div>

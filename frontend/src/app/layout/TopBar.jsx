@@ -42,7 +42,7 @@ export default function TopBar({
       case '/assistant':
         return { title: 'AI Decision Assistant', section: 'Evidence-Grounded QA' };
       default:
-        return { title: 'CMPDI Platform', section: 'System' };
+        return { title: 'GeoMine Insights', section: 'System' };
     }
   };
 

@@ -82,7 +82,7 @@ export default function Sidebar({
             {!isCollapsed && (
               <div className="min-w-0">
                 <div className="text-sm font-bold text-ink-900 tracking-tight leading-none truncate">
-                  CMPDI Platform
+                  GeoMine Insights
                 </div>
                 <div className="text-[10px] text-ink-500 font-medium tracking-wide mt-1 truncate">
                   Coal India Ltd. • SIH 2024

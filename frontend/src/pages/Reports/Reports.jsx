@@ -90,7 +90,7 @@ PARLIAMENTARY QUESTION:
 ${previewText.question}
 
 MINISTERIAL STATEMENT & AUDITED EXTRACTION DATA:
-According to cryptographically validated returns verified by CMPDI Regional Institutes:
+According to cryptographically validated returns verified by GeoMine Insights Regional Audits:
 
 ${
   previewText.records.length > 0
@@ -109,7 +109,7 @@ ${
 }
 
 STATUTORY DECLARATION:
-All numeric metrics reflect verified human sign-offs from CMPDI repository.
+All numeric metrics reflect verified human sign-offs from GeoMine Insights repository.
 Zero synthetic generation policy enforced under Coal Mines (Special Provisions) Act.
 ================================================================================`;
 
@@ -119,7 +119,7 @@ Zero synthetic generation policy enforced under Coal Mines (Special Provisions) 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `CMPDI_Parliamentary_Answer_Annexure_${new Date().toISOString().slice(0, 10)}.${format.toLowerCase()}`;
+      link.download = `GeoMine_Insights_Parliamentary_Answer_Annexure_${new Date().toISOString().slice(0, 10)}.${format.toLowerCase()}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -373,7 +373,7 @@ Zero synthetic generation policy enforced under Coal Mines (Special Provisions) 
 
                 {/* Notes */}
                 <div className="text-[9.5px] text-[#64748B] pt-2 border-t border-[#D5DEE8] space-y-1">
-                  <p>• Data verified by CMPDI Regional Institute under statutory mandate.</p>
+                  <p>• Data verified by GeoMine Insights under statutory mandate.</p>
                   <p>• Cryptographic hashes preserved in central repository.</p>
                 </div>
               </div>

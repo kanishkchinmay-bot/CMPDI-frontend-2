@@ -32,7 +32,7 @@ const AssistantHeader = () => {
             <div className="flex items-center gap-2">
 
               <h2 className="text-lg font-semibold text-slate-700">
-                CMPDI AI Assistant
+                GeoMine Insights AI Assistant
               </h2>
 
               <span className="w-2 h-2 rounded-full bg-emerald-500" />

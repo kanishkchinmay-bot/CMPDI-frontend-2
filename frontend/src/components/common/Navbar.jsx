@@ -65,7 +65,7 @@ const Navbar = ({ onOpenMenu, onSearchQuery }) => {
               </span>
             </h1>
             <p className="text-[11px] text-[#64748B] hidden md:block">
-              CMPDI · Document Upload → Extract → Review → Report
+              GeoMine Insights · Document Upload → Extract → Review → Report
             </p>
           </div>
         </div>

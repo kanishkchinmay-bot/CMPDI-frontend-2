@@ -10,7 +10,7 @@ import {
 const settings = [
   {
     title: "Profile & Workspace",
-    description: "Manage your account and CMPDI workspace preferences.",
+    description: "Manage your account and GeoMine Insights workspace preferences.",
     icon: UserRound,
     status: "Configured",
   },

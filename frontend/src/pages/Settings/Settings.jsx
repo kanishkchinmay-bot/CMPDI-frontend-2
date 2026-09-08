@@ -25,7 +25,7 @@ const Settings = () => {
           </h1>
 
           <p className="text-sm text-slate-400 mt-2">
-            Manage your CMPDI intelligence platform preferences and system configuration.
+            Manage your GeoMine Insights platform preferences and system configuration.
           </p>
         </div>
 
@@ -186,7 +186,7 @@ const Settings = () => {
           <div className="flex-1">
 
             <p className="text-sm font-semibold text-slate-600">
-              CMPDI Intelligence Platform
+              GeoMine Insights Platform
             </p>
 
             <p className="text-xs text-slate-400 mt-1">

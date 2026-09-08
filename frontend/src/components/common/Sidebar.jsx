@@ -38,7 +38,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-[17px] tracking-tight text-[#1E293B]">CMPDI</span>
+                <span className="font-extrabold text-[16px] tracking-tight text-[#1E293B]">GeoMine Insights</span>
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#D5DEE8] text-[#475569]">v1</span>
               </div>
               <p className="text-[10.5px] font-semibold uppercase tracking-wider text-[#64748B]">
